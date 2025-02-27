@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Return Book</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="{{ url_for('index') }}">Library</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('add_book_page') }}">Add Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('borrow_book_page') }}">Borrow Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('return_book_page') }}">Return Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('add_borrower_page') }}">Add Borrower</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container mt-4">
+    <h1 class="mb-4">Return a Book</h1>
+    <form id="returnForm">
+      <div class="form-group">
+        <label for="book_id">Book ID:</label>
+        <input type="number" class="form-control" id="book_id" name="book_id" placeholder="Enter Book ID" required>
+      </div>
+      <div class="form-group">
+        <label for="borrower_id">Borrower ID:</label>
+        <input type="number" class="form-control" id="borrower_id" name="borrower_id" placeholder="Enter Borrower ID" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+    <div id="result" class="mt-4"></div>
+  </div>
+
+  <!-- Bootstrap JS, Popper.js, and jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  
+  <!-- AJAX Script for Return Book -->
+  <script>
+    document.getElementById('returnForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const bookId = parseInt(document.getElementById('book_id').value);
+      const borrowerId = parseInt(document.getElementById('borrower_id').value);
+      
+      fetch('/return', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ book_id: bookId, borrower_id: borrowerId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message); // Pop-up success message
+        } else {
+          alert("Error: " + JSON.stringify(data));
+        }
+      })
+      .catch(error => {
+        alert("Error: " + error);
+      });
+    });
+  </script>
+</body>
+</html>

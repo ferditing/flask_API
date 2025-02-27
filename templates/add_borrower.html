@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add Borrower</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="{{ url_for('index') }}">Library</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('add_book_page') }}">Add Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('borrow_book_page') }}">Borrow Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('return_book_page') }}">Return Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('add_borrower_page') }}">Add Borrower</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container mt-4">
+    <h1>Add a New Borrower</h1>
+    <form id="borrowerForm">
+      <div class="form-group">
+        <label for="name">Borrower Name:</label>
+        <input type="text" id="name" name="name" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+    <div id="result" class="mt-3"></div>
+  </div>
+
+  <!-- Bootstrap JS, Popper.js, and jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  
+  <!-- AJAX Script -->
+  <script>
+    document.getElementById('borrowerForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value;
+      fetch('/borrowers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.id) {
+          alert("Borrower added successfully");  // Popup success message
+        } else {
+          alert("Error: " + JSON.stringify(data));
+        }
+      })
+      .catch(error => {
+        alert("Error: " + error);
+      });
+    });
+  </script>
+</body>
+</html>

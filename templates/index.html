@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" 
+        integrity="sha512-Fo3rlrZj/k7ujTnHg4C+XK7k2H/MT9PkOqE8YZ1+iv8Y/kbfS94tqzmF3jG6i6qXUO/N6B+PfxfGk9b+w==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="{{ url_for('index') }}">Library</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('add_book_page') }}">Add Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('borrow_book_page') }}">Borrow Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('return_book_page') }}">Return Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('add_borrower_page') }}">Add Borrower</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container mt-4">
+    <!-- Books Section -->
+    <h2>Books</h2>
+    <div class="row">
+      {% for book in books %}
+      <div class="col-md-4">
+        <div class="card mb-4">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title mb-0">{{ book.title }}</h5>
+              <small class="text-muted">{{ book.author }}</small>
+            </div>
+            <div>
+              <!-- Edit Icon -->
+              <button class="btn btn-sm btn-outline-primary mr-1" 
+                      data-book-id="{{ book.id }}" 
+                      onclick="openEditModal(this.getAttribute('data-book-id'))" 
+                      title="Edit Book">
+                <i class="fas fa-edit"></i>
+              </button>
+              <!-- Delete Icon -->
+              <button class="btn btn-sm btn-outline-danger" 
+                      data-book-id="{{ book.id }}" 
+                      onclick="deleteBook(this.getAttribute('data-book-id'))" 
+                      title="Delete Book">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-footer">
+            Available: {{ book.available_copies }} / {{ book.total_copies }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Borrowers Section -->
+    <h2>Borrowers</h2>
+    <div class="row">
+      {% for borrower in borrowers %}
+      <div class="col-md-3">
+        <div class="card mb-4">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title mb-0">{{ borrower.name }}</h5>
+            </div>
+            <div>
+              <!-- Edit Icon -->
+              <a href="{{ url_for('edit_borrower_page', borrower_id=borrower.id) }}" 
+                 class="btn btn-sm btn-outline-primary mr-1" 
+                 title="Edit Borrower">
+                <i class="fas fa-edit"></i>
+              </a>
+              <!-- Delete Icon -->
+              <button class="btn btn-sm btn-outline-danger" 
+                      data-borrower-id="{{ borrower.id }}" 
+                      onclick="deleteBorrower(this.getAttribute('data-borrower-id'))" 
+                      title="Delete Borrower">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
+          {% if borrower.borrow_records|length > 0 %}
+          <div class="card-footer">
+            <strong>Borrowed Books:</strong>
+            <ul class="mb-0">
+              {% for record in borrower.borrow_records %}
+              <li>{{ record.book.title }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% else %}
+          <div class="card-footer">
+            No books borrowed
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Edit Book Modal -->
+  <div class="modal fade" id="editBookModal" tabindex="-1" role="dialog" aria-labelledby="editBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form id="editBookForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editBookModalLabel">Edit Book</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- Hidden field for book ID -->
+            <input type="hidden" id="edit_book_id">
+            <div class="form-group">
+              <label for="edit_title">Title</label>
+              <input type="text" class="form-control" id="edit_title" required>
+            </div>
+            <div class="form-group">
+              <label for="edit_author">Author</label>
+              <input type="text" class="form-control" id="edit_author" required>
+            </div>
+            <div class="form-group">
+              <label for="edit_total_copies">Total Copies</label>
+              <input type="number" class="form-control" id="edit_total_copies" min="1" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Update Book</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Required Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    // Function to open the edit modal and load current book data
+    function openEditModal(bookId) {
+      fetch('/books/' + bookId)
+        .then(response => response.json())
+        .then(book => {
+          document.getElementById('edit_book_id').value = book.id;
+          document.getElementById('edit_title').value = book.title;
+          document.getElementById('edit_author').value = book.author;
+          document.getElementById('edit_total_copies').value = book.total_copies;
+          // Show the modal
+          $('#editBookModal').modal('show');
+        })
+        .catch(error => {
+          alert("Error fetching book details: " + error);
+        });
+    }
+
+    // Function to handle the update submission from the modal
+    document.getElementById('editBookForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const bookId = document.getElementById('edit_book_id').value;
+      const updatedData = {
+        title: document.getElementById('edit_title').value,
+        author: document.getElementById('edit_author').value,
+        total_copies: document.getElementById('edit_total_copies').value
+      };
+
+      fetch('/books/' + bookId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.id) {
+          alert("Book updated successfully!");
+          $('#editBookModal').modal('hide');
+          location.reload(); // Reload to show updated data
+        } else {
+          alert("Error: " + JSON.stringify(data));
+        }
+      })
+      .catch(error => {
+        alert("Error updating book: " + error);
+      });
+    });
+
+    // Delete Book
+    function deleteBook(bookId) {
+      if (confirm("Are you sure you want to delete this book?")) {
+        fetch('/books/' + bookId, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || "Book deleted successfully!");
+          location.reload();
+        })
+        .catch(error => {
+          alert("Error deleting book: " + error);
+        });
+      }
+    }
+
+    // Delete Borrower
+    function deleteBorrower(borrowerId) {
+      if (confirm("Are you sure you want to delete this borrower?")) {
+        fetch('/borrowers/' + borrowerId, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || "Borrower deleted successfully!");
+          location.reload();
+        })
+        .catch(error => {
+          alert("Error deleting borrower: " + error);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
